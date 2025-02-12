@@ -48,7 +48,7 @@ async def gen_text(bv_id: str) -> str:
 async def get_video_summary_by_ai(aid, cid) -> str:
     subtitle = await get_subtitle(aid, cid)
     if subtitle:
-        res = chat("", "#有如下一个视频，请用中文完整的总结:\n" + subtitle)
+        res = await chat("", "#有如下一个视频，请用中文完整的总结:\n" + subtitle)
         return res
     else:
         return ""
