@@ -65,7 +65,7 @@ class AIChat:
         if isinstance(response, str):
             res_str = response
         else:
-            res_str = response.choices[0].message
+            res_str = response.choices[0].message.content
         reply = {'role': 'assistant', 'content': res_str}
         # async for event in response:
         #     choice = event.choices[0]
