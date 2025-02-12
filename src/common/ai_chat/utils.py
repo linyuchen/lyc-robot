@@ -4,8 +4,8 @@ from src.common.ai_chat.chat_engine import chat
 from src.common.utils.htmlhelper import html2txt
 
 
-def trans2en(text: str) -> str:
-    return chat("", f'将下面的文字翻译成英文，如果已经是英文则不翻译: {text}')
+async def trans2en(text: str) -> str:
+    return await chat("", f'将下面的文字翻译成英文，如果已经是英文则不翻译: {text}')
 
 
 def summary_web(link: str) -> str:
