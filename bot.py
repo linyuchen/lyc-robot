@@ -3,8 +3,8 @@ from nonebot.adapters.onebot.v11 import Adapter as OB11Adapter
 from nonebot.adapters.telegram import Adapter as TGAdapter
 from nonebot.adapters.github import Adapter as GHAdapter
 
-from src.db.alembic.common.script import upgrade_common_db
-from src.db.alembic.group_point.script import upgrade_group_point_db
+from src.db.alembic_tools.common_db.script import upgrade_common_db
+from src.db.alembic_tools.group_point_db.script import upgrade_group_point_db
 upgrade_common_db()
 upgrade_group_point_db()
 

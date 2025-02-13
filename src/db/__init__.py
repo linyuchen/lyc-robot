@@ -2,7 +2,7 @@ import os
 import importlib
 from pathlib import Path
 
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, inspect
 from sqlalchemy.orm import sessionmaker
 
 from src.common import DATA_DIR
@@ -36,6 +36,9 @@ def __import_models():
 __import_models()
 
 def init_db():
+    inspector = inspect(engine)
+    if not inspector.get_table_names():
+        print(f'需要新建数据库{DB_PATH}')
     Base.metadata.create_all(engine)
     session = sessionmaker(bind=engine)()
     return session
