@@ -16,7 +16,7 @@ def add_subscriber_to_db(group_id: str, platform: str, owner: str, repo: str, ev
     if e:
         return
 
-    s = Subscriber(group_id=group_id, platform=platform, author=owner, repo=repo, event=event, action=action)
+    s = Subscriber(group_id=group_id, platform=platform, owner=owner, repo=repo, event=event, action=action)
     session.add(s)
     session.commit()
 
