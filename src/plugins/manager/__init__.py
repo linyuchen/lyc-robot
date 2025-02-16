@@ -16,7 +16,7 @@ __plugin_meta__ = PluginMetadata(
 
 from src.plugins.common.permission import check_super_user, check_group_admin
 from src.plugins.common.rules import rule_is_group_msg, inject_plugin_rule
-from src.plugins.manager.util import find_plugin_by_name, init_plugin_manager_config, check_group_enable, \
+from src.db.model_utils.plugin_manager import find_plugin_by_name, init_plugin_manager_config, check_group_enable, \
     check_global_enable, \
     set_global_enable, set_group_enable
 

@@ -6,7 +6,7 @@ from nonebot.permission import SUPERUSER
 from nonebot.plugin import PluginMetadata
 from nonebot_plugin_uninfo import Uninfo
 
-from .util import check_group_message, get_group_ignore_cmds, add_group_ignore_cmd, remove_group_ignore_cmd
+from src.db.model_utils.group_cmd_manager import check_group_message, get_group_ignore_cmds, add_group_ignore_cmd, remove_group_ignore_cmd
 
 __plugin_meta__ = PluginMetadata(
     name="群命令屏蔽",

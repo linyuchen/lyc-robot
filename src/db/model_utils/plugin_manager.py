@@ -1,6 +1,6 @@
 from nonebot import get_loaded_plugins
 
-from ...db import init_db
+from src.db import init_db
 from src.db.models.plugin_manager import PluginManager
 
 

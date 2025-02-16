@@ -1,6 +1,5 @@
-from nonebot import on_fullmatch, get_driver, on_command, Bot
+from nonebot import on_fullmatch, get_driver, on_command
 from nonebot.internal.adapter.message import Message
-from nonebot.internal.adapter import Event
 from nonebot.message import event_preprocessor
 from nonebot.params import CommandArg
 from nonebot.permission import SUPERUSER
@@ -17,7 +16,7 @@ __plugin_meta__ = PluginMetadata(
 
 from src.plugins.common.permission import check_super_user
 from src.plugins.common.rules import rule_args_num
-from src.plugins.blacklist.util import add_black_target, del_black_target, check_black_target, black_user_list, \
+from src.db.model_utils.blacklist import add_black_target, del_black_target, check_black_target, black_user_list, \
     black_group_list
 
 superusers = get_driver().config.superusers

@@ -4,7 +4,7 @@ from nonebot_plugin_uninfo import Uninfo
 
 from src.plugins.common.permission import check_group_admin
 from src.plugins.common.rules import rule_is_group_msg
-from src.plugins.github.subscriber.db.util import add_subscriber_to_db
+from src.db.model_utils.github import add_subscriber_to_db
 
 add_subscriber_cmd = on_command('subscribe', permission=check_group_admin, rule=rule_is_group_msg())
 
