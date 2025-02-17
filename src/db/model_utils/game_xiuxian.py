@@ -11,14 +11,13 @@ from src.db.models.game_xiuxian import GameXiuxianUser, GameXiuxianGroupUser, Ga
 session = init_db()
 
 
-def get_user(user_id: str, platform: str, group_id: str = None, username: str = None) -> Tuple[GameXiuxianUser, str]:
+def get_user(user_id: str, platform: str, group_id: str = None, username: str = None) -> GameXiuxianUser:
     user = session.query(GameXiuxianUser).filter(GameXiuxianUser.user_id == user_id,
-                                                 GameXiuxianUser.platform == platform)
+                                                 GameXiuxianUser.platform == platform).first()
     if not user:
         user = GameXiuxianUser(user_id=user_id, platform=platform)
         session.add(user)
         session.commit()
-    _username = ''
     if group_id:
         group_user: GameXiuxianGroupUser = session.query(GameXiuxianGroupUser).filter(
             GameXiuxianGroupUser.user_id == user_id, GameXiuxianGroupUser.group_id == group_id,
@@ -26,16 +25,14 @@ def get_user(user_id: str, platform: str, group_id: str = None, username: str = 
         if group_user is not None:
             if username:
                 group_user.username = username
-            _username = group_user.username
         else:
             group_user = GameXiuxianGroupUser(user_id=user_id, platform=platform, group_id=group_id, username=username)
             session.add(group_user)
         session.commit()
 
-    return user, _username
+    return user
 
-
-def save_user(user: GameXiuxianUser, group_id: str = None, username: str = None) -> GameXiuxianUser:
+def save_user(user: GameXiuxianUser) -> GameXiuxianUser:
     if not get_user(user_id=user.user_id, platform=user.platform):
         session.add(user)
     session.commit()
@@ -43,7 +40,7 @@ def save_user(user: GameXiuxianUser, group_id: str = None, username: str = None)
 
 
 def sign(user_id: str, platform: str, group_id: str = None, username: str = None) -> bool:
-    user, _ = get_user(user_id=user_id, platform=platform, group_id=group_id, username=username)
+    user = get_user(user_id=user_id, platform=platform, group_id=group_id, username=username)
     tz = pytz.timezone('Asia/Shanghai')
     now = datetime.now(tz)
     exist_sign = session.query(GameXiuxianSign).filter(GameXiuxianSign.user_id == user.user_id,
@@ -58,7 +55,7 @@ def sign(user_id: str, platform: str, group_id: str = None, username: str = None
     return False
 
 
-def get_top(top: int = 20, group_id: str = None, platform: str = None):
+def get_top(group_id: str = None, platform: str = None, top: int = 20):
     query = (
         session.query(GameXiuxianUser.user_id,
                       GameXiuxianUser.platform,
