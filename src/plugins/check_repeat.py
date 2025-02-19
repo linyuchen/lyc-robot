@@ -22,11 +22,12 @@ async def _(bot: Bot, event: GroupMessageEvent):
         return
     if current_message == state['last_message']:
         state['repeat_count'] += 1
+        repeat_count = state['repeat_count']
         repeat_max = random.randint(3, 12)
         if state['repeat_count'] >= repeat_max:
             state['repeat_count'] = 0
             state['last_message'] = ''
-            ban_duration = (state['repeat_count'] - 2)  * 60
+            ban_duration = (repeat_count - 2)  * 60
             bot_info = await bot.get_group_member_info(group_id=event.group_id, user_id=int(bot.self_id))
             if bot_info.get('role') not in ['owner', 'admin']:
                 return
