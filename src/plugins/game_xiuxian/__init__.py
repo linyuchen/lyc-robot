@@ -2,7 +2,14 @@ import random
 import time
 
 from nonebot import on_fullmatch, on_command
+from nonebot.plugin import PluginMetadata
 from nonebot_plugin_uninfo import Uninfo
+
+__plugin_meta__ = PluginMetadata(
+    name="修仙游戏",
+    description="简单的挂机修仙小游戏",
+    usage="修仙面板、修仙签到、闭关、出关、修仙榜",
+)
 
 from src.db.model_utils.game_xiuxian import sign, save_user, get_top
 from src.db.models.game_xiuxian import SECLUSION_SECOND_LEVEL_POINT
@@ -32,7 +39,10 @@ async def _(session: Uninfo, game_user: GameUser):
     resp = f'道友：{session.user.name}\n'
     resp += f'境界：{game_user.level_name}\n'
     resp += f'灵力: {game_user.point} / {game_user.next_level_point}\n'
-    resp += f'当前每秒闭关获得灵力：{SECLUSION_SECOND_LEVEL_POINT * (game_user.level + 1)}'
+    if game_user.is_seclusion:
+        resp += '当前状态：闭关中'
+    else:
+        resp += '当前状态：空闲中'
     await cmd_panel.finish(resp)
 
 
@@ -42,7 +52,8 @@ async def _(session: Uninfo, game_user: GameUser):
         game_user.is_seclusion = True
         game_user.seclusion_timestamp = time.time()
         save_user(game_user)
-    await cmd_seclusion.finish(f'【{session.user.name}】已经闭关了')
+    resp = f'当前每秒闭关获得灵力：{SECLUSION_SECOND_LEVEL_POINT * (game_user.level + 1)}'
+    await cmd_seclusion.finish(f'【{session.user.name}】已经闭关了\n{resp}')
 
 
 @cmd_exit_seclusion.handle()
