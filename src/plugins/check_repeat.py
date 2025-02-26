@@ -15,7 +15,7 @@ __plugin_meta__ = PluginMetadata(
     usage="",
 )
 
-group_message_state = defaultdict(lambda : {'repeat_count': 0, 'last_message': ''})
+group_message_state = defaultdict(lambda : {'repeat_count': 1, 'last_message': ''})
 
 @on_message().handle()
 async def _(bot: Bot, event: GroupMessageEvent):
@@ -46,7 +46,7 @@ async def _(bot: Bot, event: GroupMessageEvent):
         if state['repeat_count'] >= repeat_max:
             state['repeat_count'] = 0
             state['last_message'] = ''
-            ban_duration = (repeat_count - 2)  * 60 * 5
+            ban_duration = (repeat_count - 2)  * 60 * 15
             bot_info = await bot.get_group_member_info(group_id=event.group_id, user_id=int(bot.self_id))
             if bot_info.get('role') not in ['owner', 'admin']:
                 return
