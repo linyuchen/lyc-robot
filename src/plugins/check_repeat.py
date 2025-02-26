@@ -54,5 +54,5 @@ async def _(bot: Bot, event: GroupMessageEvent):
             await bot.send_group_msg(group_id=event.group_id, message=f'【{event.sender.nickname}】因为复读被禁言{ban_duration}秒')
 
     else:
-        state['repeat_count'] = 0
+        state['repeat_count'] = 1
         state['last_message'] = current_message
