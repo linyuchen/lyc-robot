@@ -11,16 +11,23 @@ from nonebot.adapters.onebot.v11 import Bot, GroupMessageEvent
 
 __plugin_meta__ = PluginMetadata(
     name="复读禁言",
-    description="检测到复读就打断并禁言复读机",
+    description="检测到复读就打断并禁言复读机，只支持QQ平台",
     usage="",
 )
 
-group_message_state = defaultdict(lambda : {'repeat_count': 1, 'last_message': ''})
+group_message_state = defaultdict(lambda : {
+    'repeat_count': 1,
+    'last_message': '',
+    'user_ids': []
+})
+
+BAN_DURATION = 60 * 2
 
 @on_message().handle()
 async def _(bot: Bot, event: GroupMessageEvent):
     state = group_message_state[event.group_id]
     current_message = ''
+    group_member_id = event.sender.user_id
     for msg in event.message:
         if msg.type == 'image':
             img_url = msg.data.get('url')
@@ -41,17 +48,23 @@ async def _(bot: Bot, event: GroupMessageEvent):
         return
     if current_message == state['last_message']:
         state['repeat_count'] += 1
+        state['user_ids'].append(group_member_id)
         repeat_count = state['repeat_count']
         repeat_max = random.randint(3, 12)
         if state['repeat_count'] >= repeat_max:
-            state['repeat_count'] = 1
-            state['last_message'] = ''
-            ban_duration = (repeat_count - 2)  * 60 * 15
+            # state['repeat_count'] = 1
+            # state['last_message'] = ''
+            ban_duration = (repeat_count - 2)  * BAN_DURATION
             bot_info = await bot.get_group_member_info(group_id=event.group_id, user_id=int(bot.self_id))
             if bot_info.get('role') not in ['owner', 'admin']:
                 return
-            await bot.set_group_ban(group_id=event.group_id, user_id=event.sender.user_id, duration=ban_duration)
-            await bot.send_group_msg(group_id=event.group_id, message=f'【{event.sender.nickname}】因为复读被禁言{ban_duration}秒')
+            user_ids = state['user_ids'][2:]
+            # 选一半的用户禁言
+            user_ids = random.sample(user_ids, len(user_ids) // 2)
+            for user_id in user_ids:
+                await bot.set_group_ban(group_id=event.group_id, user_id=user_id, duration=ban_duration)
+            # await bot.send_group_msg(group_id=event.group_id, message=f'【{event.sender.card or event.sender.nickname}】因为复读被禁言{ban_duration}秒')
+            state['user_ids'] = []
 
     else:
         state['repeat_count'] = 1

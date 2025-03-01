@@ -11,7 +11,7 @@ from nonebot_plugin_uninfo import Uninfo
 __plugin_meta__ = PluginMetadata(
     name="插件管理",
     description="在当前群启用和关闭插件，也可全局（全部群）启用和关闭插件",
-    usage="插件列表，启用插件 插件名，禁用插件 插件名，全局启用插件 插件名，全局禁用插件 插件名",
+    usage="插件列表，启用插件 插件名，禁用插件 插件名，全局启用插件 插件名，全局禁用插件 插件名，关闭所有插件",
 )
 
 from src.plugins.common.permission import check_super_user, check_group_admin
@@ -25,7 +25,9 @@ driver = get_driver()
 plugin_list_cmd = on_fullmatch('插件列表', rule=rule_is_group_msg())
 global_cmd = on_command('全局禁用插件', aliases={'全局启用插件', '全局关闭插件'}, permission=SUPERUSER)
 group_cmd = on_command('启用插件', aliases={'禁用插件', '关闭插件'}, permission=check_group_admin, rule=rule_is_group_msg())
-
+disable_group_all_cmd = on_command('禁用所有插件', aliases={'关闭所有插件'}, permission=check_group_admin,
+                                   rule=rule_is_group_msg())
+enable_group_all_cmd = on_command('启用所有插件', aliases={'开启所有插件'}, permission=check_group_admin, rule=rule_is_group_msg())
 
 @plugin_list_cmd.handle()
 async def _(session: Uninfo):
@@ -82,6 +84,22 @@ async def _(bot: Bot, event: Event, args: Message = CommandArg()):
         set_group_enable(plugin.id_, str(group_id), enable)
 
     await group_cmd.finish(f'插件 {plugin_name} 在本群已{"启用" if enable else "禁用"}')
+
+@disable_group_all_cmd.handle()
+async def _(session: Uninfo):
+    group_id = session.group.id
+    for plugin in get_loaded_plugins():
+        if plugin.id_ == 'manager':
+            continue
+        set_group_enable(plugin.id_, str(group_id), False)
+    await disable_group_all_cmd.finish('本群所有插件已禁用')
+
+@enable_group_all_cmd.handle()
+async def _(session: Uninfo):
+    group_id = session.group.id
+    for plugin in get_loaded_plugins():
+        set_group_enable(plugin.id_, str(group_id), True)
+    await enable_group_all_cmd.finish('本群所有插件已启用')
 
 
 async def manage_plugin_rule(matcher: Matcher, bot: Bot, event: Event):
