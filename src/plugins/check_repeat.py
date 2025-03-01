@@ -69,3 +69,4 @@ async def _(bot: Bot, event: GroupMessageEvent):
     else:
         state['repeat_count'] = 1
         state['last_message'] = current_message
+        state['user_ids'] = []
