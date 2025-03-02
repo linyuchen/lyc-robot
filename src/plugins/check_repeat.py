@@ -16,7 +16,6 @@ __plugin_meta__ = PluginMetadata(
 )
 
 group_message_state = defaultdict(lambda : {
-    'repeat_count': 1,
     'last_message': '',
     'user_ids': []
 })
@@ -47,11 +46,10 @@ async def _(bot: Bot, event: GroupMessageEvent):
     if not current_message:
         return
     if current_message == state['last_message']:
-        state['repeat_count'] += 1
         state['user_ids'].append(group_member_id)
-        repeat_count = state['repeat_count']
+        repeat_count = len(state['user_ids'])
         repeat_max = random.randint(3, 12)
-        if state['repeat_count'] >= repeat_max:
+        if repeat_count >= repeat_max:
             # state['repeat_count'] = 1
             # state['last_message'] = ''
             ban_duration = (repeat_count - 2)  * BAN_DURATION
@@ -63,10 +61,10 @@ async def _(bot: Bot, event: GroupMessageEvent):
             user_ids = random.sample(user_ids, len(user_ids) // 2)
             for user_id in user_ids:
                 await bot.set_group_ban(group_id=event.group_id, user_id=user_id, duration=ban_duration)
-            # await bot.send_group_msg(group_id=event.group_id, message=f'【{event.sender.card or event.sender.nickname}】因为复读被禁言{ban_duration}秒')
+                await asyncio.sleep(1)
+            await bot.send_group_msg(group_id=event.group_id, message=f'还复读？给你禁言个{ban_duration // 60}分钟!')
             state['user_ids'] = []
 
     else:
-        state['repeat_count'] = 1
         state['last_message'] = current_message
         state['user_ids'] = []
