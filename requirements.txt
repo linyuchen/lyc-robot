@@ -19,7 +19,7 @@ tensorflow-hub~=0.16.1
 playwright~=1.49.1
 reportlab~=4.0.9
 tqdm~=4.66.1
-av~=11.0.0
+av
 pilk~=0.2.4
 nonebot2~=2.3.0
 nonebot-adapter-onebot~=2.4.3
