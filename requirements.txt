@@ -33,3 +33,4 @@ nonebot-plugin-uninfo==0.6.2
 nonebot-adapter-telegram~=0.1.0b20
 litellm~=1.57.1
 nonebot-adapter-github~=0.5.0
+python-magic
