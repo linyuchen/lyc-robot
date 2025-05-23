@@ -1,19 +1,39 @@
 import uuid
+from typing import TypedDict, Literal, Union
 
 import openai
 import litellm
 from litellm import completion, acompletion
 from .txcloud import TXCloudLLM
+from .yuanbao import TXYuanBao
 
 litellm.custom_provider_map = [
     {
         'provider': 'txcloud',
         'custom_handler': TXCloudLLM()
+    },
+    {
+        'provider': '腾讯元宝',
+        'custom_handler': TXYuanBao()
     }
 ]
 
+
 def set_ai_chat_proxy(proxy: str):
     openai.proxy = proxy
+
+
+class TextMessage(TypedDict):
+    type: Literal['text']
+    text: str
+
+
+class ImageMessage(TypedDict):
+    type: Literal['image_url']
+    image_url: str
+
+
+Messages = list[TextMessage | ImageMessage]
 
 
 class AIChat:
@@ -45,7 +65,7 @@ class AIChat:
     def clear_history(self):
         self.history.clear()
 
-    async def chat(self, question: str) -> str:
+    async def chat(self, question: str | Messages) -> str:
         if len(self.history) > self.history_max:
             del self.history[:3]
         messages = self.history[:]
