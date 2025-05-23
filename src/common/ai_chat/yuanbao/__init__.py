@@ -26,7 +26,7 @@ class TXYuanBao(litellm.CustomLLM):
             for c in ori_content:
                 if isinstance(c, dict):
                     if c.get('type') == 'text':
-                        prompt += c['text'] + '\n'
+                        content += c['text'] + '\n'
                     elif c.get('type') == 'image_url':
                         image_urls.append(c['image_url'])
         else:

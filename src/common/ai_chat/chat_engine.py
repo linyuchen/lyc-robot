@@ -2,7 +2,7 @@ import os
 import traceback
 from threading import Lock
 
-from .base import AIChat
+from .base import AIChat, Messages
 from src.common.config import CONFIG
 from src.db.model_utils.ai_chat import read_chat_model, save_chat_model
 from .. import DATA_DIR
@@ -102,7 +102,7 @@ def set_chat_model(context_id: str, model: str):
     save_chat_model(context_id, model)
 
 
-async def chat(context_id: str | None, question: str) -> str:
+async def chat(context_id: str | None, question: str | Messages) -> str:
     try:
         res = await __get_aichat(context_id).chat(question)
         return res
