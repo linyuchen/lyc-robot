@@ -1,5 +1,3 @@
-# -*- encoding:UTF8 -*-
-
 import time
 
 import psutil
@@ -7,7 +5,7 @@ import psutil
 start_time = time.time()
 
 
-def running_time(timestamp: int) -> str:
+def running_time(timestamp: int | float) -> str:
     t = time.time() - timestamp
     day = t / 3600 / 24
     hour = (t % (3600 * 24)) / 3600

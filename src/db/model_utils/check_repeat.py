@@ -15,6 +15,7 @@ def get_ban_duration(group_id: str, platform: str) -> int:
         if c:
             cache[(group_id, platform)] = c.ban_duration
             return c.ban_duration
+        return 0
 
 
 def set_ban_duration(group_id: str, platform: str, ban_duration: int):
