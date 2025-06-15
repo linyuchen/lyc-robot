@@ -68,13 +68,16 @@ def __get_chat_config(model: str):
     return chat_config
 
 
-def __get_aichat(context_id: str) -> AIChat:
+def __get_aichat(context_id: str, model_name: str | None = None) -> AIChat:
     if context_id in context:
         return context[context_id]
 
     if len(CONFIG.ai_chats) == 0:
         raise Exception("未配置AI聊天模型")
-    chat_model = read_chat_model(context_id) or CONFIG.ai_chats[0].model
+    if not model_name:
+        chat_model = read_chat_model(context_id) or CONFIG.ai_chats[0].model
+    else:
+        chat_model = model_name
     ai_chat_config = __get_chat_config(chat_model)
     ai_chat = AIChat(prompt=default_prompt_text if context_id else "",
                      api_key=ai_chat_config.api_key,
@@ -102,9 +105,9 @@ def set_chat_model(context_id: str, model: str):
     save_chat_model(context_id, model)
 
 
-async def chat(context_id: str | None, question: str | Messages) -> str:
+async def chat(context_id: str | None, question: str | Messages, model_name: str | None = None) -> str:
     try:
-        res = await __get_aichat(context_id).chat(question)
+        res = await __get_aichat(context_id, model_name).chat(question)
         return res
     except Exception as e:
         traceback.print_exc()

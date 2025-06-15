@@ -82,7 +82,7 @@ async def _(bot: Bot, event: Event):
 
 
 set_cookie_cmd = on_command('设置B站cookie', permission=SUPERUSER)
-login_cmd = on_command('登录B站', aliases={'登录b站'}, permission=SUPERUSER)
+login_cmd = on_command('登录B站', aliases={'登录b站', 'B站登录', 'b站登录'}, permission=SUPERUSER)
 
 @set_cookie_cmd.handle()
 async def _(args = CommandArg()):

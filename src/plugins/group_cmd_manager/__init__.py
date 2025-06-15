@@ -23,7 +23,13 @@ def check_group_cmd_permission(matcher: Matcher, bot: Bot, event: Event):
     message = getattr(event, 'message', None)
     if not message:
         return True
-    msg_text = message.extract_plain_text().strip()
+    msg_text = ''
+    if isinstance(message, Message):
+        msg_text = message.extract_plain_text().strip()
+    elif isinstance(message, list):
+        msg_text = ''
+        for msg in message:
+            msg_text = msg.get('text', '').strip()
     not_ignore = check_group_message(vars(event).get('group_id'), msg_text)
     return not_ignore
 

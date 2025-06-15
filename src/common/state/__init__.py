@@ -16,10 +16,10 @@ def running_time(timestamp: int | float) -> str:
     return state_str
 
 
-def state():
+def state(bot_start_time: float | int = start_time) -> str:
     split_str = "\n" + "-" * 6 + "\n"
     state_str = "系统" + running_time(psutil.boot_time()) + split_str
-    state_str += "Bot" + running_time(start_time) + split_str
+    state_str += "Bot" + running_time(bot_start_time) + split_str
     cpu_percent = psutil.cpu_percent(interval=1)
     memory = psutil.virtual_memory()
     used_memory = memory.used / 1024 / 1024 / 1024 # GB
