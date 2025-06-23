@@ -29,9 +29,15 @@ driver = get_driver()
 from src.plugins.common.depends import Group
 
 
+async def get_qqnt_new_version():
+    version, detail = await qqnt_version_monitor.get_new_version()
+    if version:
+        save_version(version, detail)
+    return version, detail
+
 @scheduler.scheduled_job("cron", minute="*/10", id="qqnt_version_monitor")
 async def qqnt_version_scheduler():
-    version, detail = await qqnt_version_monitor.get_new_version()
+    version, detail = await get_qqnt_new_version()
     if not version:
         return
     save_version(version, detail)
@@ -43,7 +49,7 @@ async def qqnt_version_scheduler():
 
 @driver.on_startup
 async def _():
-    await qqnt_version_monitor.get_new_version()
+    await get_qqnt_new_version()
 
 
 qqnt_versions_cmd = on_fullmatch(('QQ版本列表', 'qq版本列表', 'QQ历史版本', 'qq历史版本'))
