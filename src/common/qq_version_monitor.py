@@ -45,7 +45,7 @@ class QQNTVersionMonitor:
             v, content = await self.get_version()
         except Exception as e:
             return None, ''
-        if v != self.current_version:
+        if v and v != self.current_version:
             self.current_version = v
             return v, content
         return None, ''
