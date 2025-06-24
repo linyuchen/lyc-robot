@@ -45,7 +45,7 @@ class QQNTVersionMonitor:
             v, content = await self.get_version()
         except Exception as e:
             return None, ''
-        if v and v != self.current_version:
+        if v and v > self.current_version:
             self.current_version = v
             return v, content
         return None, ''
@@ -54,4 +54,7 @@ class QQNTVersionMonitor:
 qqnt_version_monitor = QQNTVersionMonitor()
 
 if __name__ == '__main__':
-    asyncio.run(qqnt_version_monitor.get_version())
+    import time
+    while True:
+        print(asyncio.run(qqnt_version_monitor.get_new_version())[0])
+        time.sleep(5)
