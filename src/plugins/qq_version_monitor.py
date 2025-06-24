@@ -35,7 +35,7 @@ async def get_qqnt_new_version():
         save_version(version, detail)
     return version, detail
 
-@scheduler.scheduled_job("cron", minute="*/10", id="qqnt_version_monitor")
+@scheduler.scheduled_job("cron", minute="*/30", id="qqnt_version_monitor")
 async def qqnt_version_scheduler():
     version, detail = await get_qqnt_new_version()
     if not version:
