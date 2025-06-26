@@ -71,7 +71,7 @@ class YuanBaoApi:
             "agentId": self.agent_id,
             "supportHint": 1,
             "version": "v2",
-            "chatModelId": "deep_seek_v3",
+            "chatModelId": "deep_seek_v3", # deep_seek_v3, deep_seek. deep_seek 为深度思考
             "chatModelExtInfo": "{\"modelId\":\"deep_seek_v3\",\"subModelId\":\"\",\"supportFunctions\":{\"supportInternetSearch\":true,\"internetSearch\":\"supportInternetSearch\"}}",
             "supportFunctions": [
                 "supportInternetSearch",
@@ -105,6 +105,10 @@ class YuanBaoApi:
                         quote_count = len(data.get('docs', []))
             if quote_count:
                 resp_text = remove_quotes(resp_text, quote_count)
+            # 正则替换 [](@replace=\d+)
+            resp_text = re.sub(r'\[\]\(@replace=\d+\)', '', resp_text)
+            # 正则替换[citation:\d+]
+            resp_text = re.sub(r'\[citation:\d+\]', '', resp_text)
             return resp_text
 
     def __generate_q_signature(
@@ -228,10 +232,10 @@ if __name__ == '__main__':
 
 
     async def test():
-        file_info = await t.upload_file(Path(__file__).parent / 'example.png')
+        # file_info = await t.upload_file(Path(__file__).parent / 'example.png')
         chat_id = await t.create_chat()
         # print(chat_id)
-        print(await t.chat(chat_id, '这是什么', [file_info]))
+        print(await t.chat(chat_id, '高息高反取消对消费者是好事吗', []))
 
 
     asyncio.run(test())
