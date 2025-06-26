@@ -1,8 +1,8 @@
 import asyncio
-from typing import Iterable, Awaitable, Tuple, Any
+from typing import Iterable, Awaitable, Any
 
 
-async def async_run_tasks(coroutines: Iterable[Awaitable], concurrency) -> Tuple[Any]:
+async def async_run_tasks(coroutines: Iterable[Awaitable], concurrency) -> list[Any]:
     """
     :param coroutines: An iterable object for the coroutine to execute (e.g., list, tuple, etc.).
     :param concurrency: Maximum concurrent number.

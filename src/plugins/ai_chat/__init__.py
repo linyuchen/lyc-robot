@@ -15,6 +15,7 @@ from nonebot_plugin_waiter import waiter
 from src.common.ai_chat.chat_engine import chat, set_prompt, get_prompt, clear_prompt, clear_history, \
     set_chat_model, get_current_model
 from src.common.ai_chat.base import set_ai_chat_proxy
+from ..common.message import get_message_image_urls
 from ...common.ai_chat.utils import summary_web
 from src.common.config import CONFIG
 from ..common.permission import check_group_admin
@@ -148,12 +149,26 @@ async def _(bot: Bot, event: Event, session: Uninfo, msg: UniMsg):
     chat_records[sender_id] = time.time()
 
     _chat_text = event.get_plaintext()
+    img_urls = get_message_image_urls(msg)
+    reply_img_urls = []
     reply_msgs = msg.get(Reply)
     if reply_msgs:
         reply_msg: Reply = reply_msgs[0]
+        reply_img_urls = get_message_image_urls(reply_msg.msg)
         _chat_text = reply_msg.msg.extract_plain_text() + '\n' + _chat_text
-
-    _res = await chat(get_context_id(session), _chat_text)
+    img_urls = img_urls + reply_img_urls
+    ai_chat_content = [
+        {
+            'type': 'text',
+            'text': _chat_text,
+        }
+    ]
+    for img_url in img_urls:
+        ai_chat_content.append({
+            'type': 'image_url',
+            'image_url': img_url,
+        })
+    _res = await chat(get_context_id(session), ai_chat_content)
     await bot.send(event, await (UniMsg.reply(event.message_id) + _res).export(bot))
         # voice_bytes = gen_voice(_res)
         # if voice_bytes:

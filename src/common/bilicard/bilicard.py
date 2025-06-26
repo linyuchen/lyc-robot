@@ -6,6 +6,7 @@ from PIL import Image, ImageDraw, ImageFont
 
 from src.common.bilibili.api import get_video_info, get_subtitle
 from src.common.bilibili.session import session
+from src.common.bilicard.config import bilicard_config
 from ..ai_chat.chat_engine import chat
 from ..stringplus import split_lines
 
@@ -48,7 +49,7 @@ async def gen_text(bv_id: str) -> str:
 async def get_video_summary_by_ai(aid, cid) -> str:
     subtitle = await get_subtitle(aid, cid)
     if subtitle:
-        res = await chat("", "#有如下一个视频，请用中文完整的总结:\n" + subtitle)
+        res = await chat("", "#有如下一个视频，请用中文完整的总结:\n" + subtitle, model_name=bilicard_config.bili_card_ai_model)
         return res
     else:
         return ""

@@ -43,18 +43,19 @@ async def _(bot: Bot, event: GroupMessageEvent):
     group_member_id = event.sender.user_id
     for msg in event.message:
         if msg.type == 'image':
-            img_url = msg.data.get('url')
-            async with httpx.AsyncClient() as client:
-                response = await client.get(img_url)
-                hasher = hashlib.md5()
-                for chunk in response.iter_bytes(chunk_size=8192):
-                    # 在线程池中执行同步的hash.update操作
-                    await asyncio.get_running_loop().run_in_executor(
-                        None,
-                        hasher.update,
-                        chunk
-                    )
-                current_message += hasher.hexdigest()
+            current_message += msg.data.get('file')
+            # img_url = msg.data.get('url')
+            # async with httpx.AsyncClient() as client:
+            #     response = await client.get(img_url)
+            #     hasher = hashlib.md5()
+            #     for chunk in response.iter_bytes(chunk_size=8192):
+            #         # 在线程池中执行同步的hash.update操作
+            #         await asyncio.get_running_loop().run_in_executor(
+            #             None,
+            #             hasher.update,
+            #             chunk
+            #         )
+            #     current_message += hasher.hexdigest()
         elif msg.type == 'text':
             current_message += msg.data.get('text')
         elif msg.type == 'face':

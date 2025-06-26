@@ -12,7 +12,7 @@ DB_PATH = DATA_DIR / "db.sqlite"
 engine = create_engine(f'sqlite:///{DB_PATH}')
 
 
-def __import_models():
+def import_models():
     directory = Path(__file__).parent / 'models'
     # 获取目录下的所有文件和文件夹
     for filename in os.listdir(directory):
@@ -33,7 +33,7 @@ def __import_models():
             except ImportError as e:
                 print(f"导入模块 {module_path} 失败: {e}")
 
-__import_models()
+import_models()
 
 def init_db():
     Base.metadata.create_all(engine)
