@@ -5,9 +5,9 @@ import re
 import sys
 import uuid
 import xml.etree.ElementTree as ET
-import magic
 import urllib.parse
 import httpx
+import filetype
 from hashlib import sha1
 from pathlib import Path
 from typing import TypedDict
@@ -153,13 +153,16 @@ class YuanBaoApi:
         if isinstance(file, Path):
             filename = file.name
             content = file.read_bytes()
-        filetype = magic.from_buffer(content, mime=True)
-        filetype = {
+
+        kind = filetype.guess(content)
+        filetype_str = kind.mime if kind else "text/plain"
+        f_type = {
             "image/png": "image",
             "image/jpeg": "image",
             "image/jpg": "image",
             "text/plain": "txt",
-        }.get(filetype, "txt")
+        }.get(filetype_str, "txt")
+
         data = {
             "fileName": f"{filename}",
             "docFrom": "localDoc",
@@ -182,7 +185,7 @@ class YuanBaoApi:
             "content-length": content_length,
             "host": upload_host,
         }
-        if filetype == 'image':
+        if f_type == 'image':
             headers["Content-Type"] = "image/png"
             pic_operations = '{"is_pic_info":1,"rules":[{"fileid":"%s","rule":"imageMogr2/format/jpg"}]}' % location
             headers["Pic-Operations"] = pic_operations
@@ -192,7 +195,7 @@ class YuanBaoApi:
 
         signature = self.__generate_q_signature("PUT", location, {}, headers_to_sign, f'{start_time};{expired_time}',
                                                 secret_key)
-        authorization = f'q-sign-algorithm=sha1&q-ak={secret_id}&q-sign-time={start_time};{expired_time}&q-key-time={start_time};{expired_time}&q-header-list=content-length;host{";pic-operations" if filetype == "image" else ""}&q-url-param-list=&q-signature={signature}'
+        authorization = f'q-sign-algorithm=sha1&q-ak={secret_id}&q-sign-time={start_time};{expired_time}&q-key-time={start_time};{expired_time}&q-header-list=content-length;host{";pic-operations" if f_type == "image" else ""}&q-url-param-list=&q-signature={signature}'
         headers.update({
             "Host": upload_host,
             "Content-Length": content_length,
@@ -216,8 +219,8 @@ class YuanBaoApi:
             height = 0
             width = 0
         res: Media = {
-            'docType': filetype,
-            'type': filetype,
+            'docType': f_type,
+            'type': f_type,
             'fileName': filename,
             'size': len(content),
             'height': height,

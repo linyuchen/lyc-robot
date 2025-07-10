@@ -1,3 +1,4 @@
+import json
 import time
 
 from nonebot import Bot, on_command, on_message
@@ -6,7 +7,7 @@ from nonebot.plugin import PluginMetadata
 from nonebot.params import CommandArg
 from nonebot.permission import SUPERUSER
 from nonebot_plugin_alconna import UniMsg
-from nonebot_plugin_uninfo import get_session
+from nonebot_plugin_uninfo import Uninfo
 
 from src.common.bilibili.login import BiliLogin
 from src.common.bilibili.session import set_bili_cookie
@@ -33,13 +34,19 @@ def check_in_cache(bv_id):
 
 
 @on_message().handle()
-async def _(bot: Bot, event: Event):
-    session = await get_session(bot, event)
+async def _(session: Uninfo, event: Event, bot: Bot):
     # 如何跨平台的获取用户的id呢
+    print(event)
     is_group = session.scene.is_group
     msg_text = event.get_plaintext()
-    # 是否是QQ卡片分享，由于卡片附带了预览效果，如果没有简介或者字幕总结，没必要用机器人再发送一次
-    is_from_card = "__from__card" in msg_text
+    if not msg_text:
+        if event.get_message()[0].type == 'json': # 卡片消息
+            card_json_str = event.get_message()[0].data.get('data')
+            if card_json_str:
+                card_json = json.loads(card_json_str)
+                if 'com.tencent.miniapp' in card_json.get('app'):
+                    msg_text = card_json.get('meta', {}).get('detail_1', {}).get('qqdocurl', '')
+
     b32_url = check_is_b23(msg_text)
     if b32_url:
         msg_text = await b32_to_bv(b32_url[0])
@@ -64,7 +71,7 @@ async def _(bot: Bot, event: Event):
         summary = await bilicard.get_video_summary_by_ai(video_info["aid"], video_info["cid"])
         # 没有简介内容或者简介等于标题的，且是卡片分享的，而且AI无法总结的就不需要发送了
         if ((len(video_info["desc"]) < 4 or video_info["desc"] == video_info["title"])
-                and is_from_card and not summary):
+                and not summary):
             return
         if summary:
             summary = "AI总结：" + summary
