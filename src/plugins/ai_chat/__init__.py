@@ -21,6 +21,7 @@ from src.common.config import CONFIG
 from ..common.permission import check_group_admin
 from ..common.rules import is_at_me, rule_args_num
 from nonebot import get_driver
+from .login_yuanbao import login_yuanbao_cmd
 
 __plugin_meta__ = PluginMetadata(
     name="AI聊天",
