@@ -29,7 +29,7 @@ class ZhihuPreviewer:
         )
 
     async def screenshot_zhihu_question(self, url: str) -> Path | None:
-        async with new_page(url, headless=False) as page:
+        async with new_page(url, headless=True) as page:
             await self.hidden_elements(page)
             question = page.locator("css=.QuestionHeader .QuestionHeader-main")
             if question.count() == 0:
@@ -94,7 +94,7 @@ class ZhihuPreviewer:
 
 
 class ZhihuLogin:
-    def __init__(self, headless=False):
+    def __init__(self, headless=True):
         self.browser = None
         self.page: Page | None = None
         self.headless = headless
