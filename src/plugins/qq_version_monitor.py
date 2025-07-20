@@ -48,7 +48,8 @@ async def qqnt_version_scheduler():
 
 @driver.on_startup
 async def _():
-    if get_versions():
+    if versions := get_versions():
+        qqnt_version_monitor.current_version = versions[0].version
         return
     await get_qqnt_new_version()
 
