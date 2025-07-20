@@ -2,7 +2,6 @@ import re
 import asyncio
 
 import httpx
-from bs4 import BeautifulSoup
 
 url = "https://docs.qq.com/doc/DVXNoRlpKaWhEY015?nlc=1"
 
@@ -18,26 +17,19 @@ class QQNTVersionMonitor:
         if response.status_code != 200:
             raise Exception(f"Failed to fetch the page: {response.text}")
         content = response.text
-        # 使用beautifulsoup4解析HTML内容，获取class="melo-page-view"的div
-        soup = BeautifulSoup(content, 'html.parser')
-        div_elements = soup.find_all('div', class_='melo-paragraph')
-        # 获取div的文本，并且处理换行
-        text = ''
-        # 跳过第一个div，因为它通常是标题或不需要的内容
-        for div in div_elements[1:]:
-            lines = []
-            for child in div.children:
-                if getattr(child, 'name', None) == 'span':
-                    lines.append(child.get_text(strip=True))
-                elif hasattr(child, 'get_text'):
-                    lines.append('\n' + child.get_text(strip=True))
-                elif isinstance(child, str):
-                    lines.append(child.strip())
-            text += ''.join(lines)
-        # print(text)
-        # 使用正则匹配第一个日期
-        match = re.search(r'\.(\d{5})_x64\.exe', text)
-        version = match.group(1) if match else None
+        download_links = re.findall('https://.+?qqfile/qq/QQNT/[^<]+', content)
+        if not download_links:
+            return None, ''
+        lnk_start_pos = content.find("【下载链接】")
+        change_log_content = content[:lnk_start_pos]
+        change_log_start_pos = change_log_content.rfind('【版本特性】')
+        change_log_content = change_log_content[change_log_start_pos:]
+        change_log_content = change_log_content.replace('</text>', '</text>\n')
+        change_log_content = change_log_content.replace('</span>', '</span>\n')
+        change_log_content = re.sub('<[^>]+?>', '', change_log_content)
+
+        version = re.findall(r'(\d{5})_',download_links[0])[0]
+        text = f'QQNT {version}\n{change_log_content}\n\n{"\n".join(download_links)}'
         return version, text
 
     async def get_new_version(self):
@@ -54,6 +46,7 @@ class QQNTVersionMonitor:
 qqnt_version_monitor = QQNTVersionMonitor()
 
 if __name__ == '__main__':
+
     import time
     while True:
         print(asyncio.run(qqnt_version_monitor.get_new_version())[0])
