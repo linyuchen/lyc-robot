@@ -43,7 +43,7 @@ except:
 prompt_dict = {}  # context_id: prompt_str
 
 
-def __read_prompt():
+def read_prompt():
     context_ids = os.listdir(chat_gpt_prompt_dir)
     for file_name in context_ids:
         if not file_name.endswith('.txt'):
@@ -53,14 +53,17 @@ def __read_prompt():
             prompt_dict[context_id] = pf.read()
 
 
-def __save_prompt():
+def save_prompt():
     for context_id, prompt in prompt_dict.items():
         with open(chat_gpt_prompt_dir / (context_id + '.txt'), 'w', encoding='utf-8') as pf:
             pf.write(prompt)
 
 
-def __get_chat_config(model: str):
-    chat_config = CONFIG.ai_chats[0]
+def get_chat_config(model: str, use_default = True):
+    if use_default:
+        chat_config = CONFIG.ai_chats[0]
+    else:
+        chat_config = None
     for _config in CONFIG.ai_chats:
         if _config.model == model:
             chat_config = _config
@@ -68,7 +71,7 @@ def __get_chat_config(model: str):
     return chat_config
 
 
-def __get_aichat(context_id: str, model_name: str | None = None) -> AIChat:
+def get_aichat(context_id: str, model_name: str | None = None) -> AIChat:
     if context_id in context:
         return context[context_id]
 
@@ -78,7 +81,7 @@ def __get_aichat(context_id: str, model_name: str | None = None) -> AIChat:
         chat_model = read_chat_model(context_id) or CONFIG.ai_chats[0].model
     else:
         chat_model = model_name
-    ai_chat_config = __get_chat_config(chat_model)
+    ai_chat_config = get_chat_config(chat_model)
     ai_chat = AIChat(prompt=default_prompt_text if context_id else "",
                      api_key=ai_chat_config.api_key,
                      base_url=ai_chat_config.base_url,
@@ -93,12 +96,12 @@ def __get_aichat(context_id: str, model_name: str | None = None) -> AIChat:
 
 
 def get_current_model(context_id: str) -> str:
-    return __get_aichat(context_id).model
+    return get_aichat(context_id).model
 
 
 def set_chat_model(context_id: str, model: str):
-    chat_config = __get_chat_config(model)
-    c = __get_aichat(context_id)
+    chat_config = get_chat_config(model)
+    c = get_aichat(context_id)
     c.api_key = chat_config.api_key
     c.base_url = chat_config.base_url
     c.model = chat_config.model
@@ -107,7 +110,7 @@ def set_chat_model(context_id: str, model: str):
 
 async def chat(context_id: str | None, question: str | Messages, model_name: str | None = None) -> str:
     try:
-        res = await __get_aichat(context_id, model_name).chat(question)
+        res = await get_aichat(context_id, model_name).chat(question)
         return res
     except Exception as e:
         traceback.print_exc()
@@ -115,13 +118,13 @@ async def chat(context_id: str | None, question: str | Messages, model_name: str
 
 
 def set_prompt(context_id: str, prompt: str):
-    ai_chat = __get_aichat(context_id)
+    ai_chat = get_aichat(context_id)
     ai_chat.set_prompt(prompt)
     ai_chat.clear_history()
 
     with thread_lock:
         prompt_dict[context_id] = prompt
-        __save_prompt()
+        save_prompt()
 
 
 def clear_prompt(context_id: str):
@@ -129,18 +132,18 @@ def clear_prompt(context_id: str):
 
 
 def clear_history(context_id: str):
-    __get_aichat(context_id).clear_history()
+    get_aichat(context_id).clear_history()
 
 
 def get_prompt(context_id: str) -> str:
-    return __get_aichat(context_id).get_prompt()
+    return get_aichat(context_id).get_prompt()
 
 
-def __init():
-    __read_prompt()
+def init():
+    read_prompt()
     for context_id, prompt in prompt_dict.items():
         if prompt:
             set_prompt(context_id, prompt)
 
 
-__init()
+init()

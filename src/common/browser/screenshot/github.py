@@ -5,7 +5,7 @@ from src.common.browser.screenshot.base import new_page
 
 
 async def screenshot_github_readme(url: str, http_proxy: str = "") -> Path | None:
-    async with new_page(url, http_proxy, headless=False) as page:
+    async with new_page(url, http_proxy, headless=True) as page:
         e = page.locator("css=.markdown-body")
         if e.count() == 0:
             return None

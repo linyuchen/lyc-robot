@@ -40,7 +40,6 @@ async def qqnt_version_scheduler():
     version, detail = await get_qqnt_new_version()
     if not version:
         return
-    save_version(version, detail)
     subscriber_list = get_subscribers()
     msg = UniMsg.text(detail)
     for subscriber in subscriber_list:
@@ -49,6 +48,9 @@ async def qqnt_version_scheduler():
 
 @driver.on_startup
 async def _():
+    if versions := get_versions():
+        qqnt_version_monitor.current_version = versions[0].version
+        return
     await get_qqnt_new_version()
 
 
