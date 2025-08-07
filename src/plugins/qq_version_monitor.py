@@ -110,6 +110,8 @@ async def _(group: Group):
 async def _(args: Message = CommandArg()):
     version = args.extract_plain_text()
     version = version.strip()
+    if not version.isdigit():
+        return
     version_info = get_version(version)
     if version_info:
         await qqnt_search_cmd.finish(version_info.detail)
