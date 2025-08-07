@@ -2,7 +2,7 @@ import re
 
 
 def check_is_b23(text: str) -> list[str]:
-    b23tv = re.findall("(?<=b23.tv/)\w*", text)
+    b23tv = re.findall(r"(?<=b23.tv/)\w*", text)
     return b23tv
 
 

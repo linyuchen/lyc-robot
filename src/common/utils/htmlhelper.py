@@ -53,7 +53,7 @@ def remove_char_entity(html: str):
         else:
             return ""
 
-    html = re.sub("&#(\d+);", func, html)
+    html = re.sub(r"&#(\d+);", func, html)
 
     return html
 
@@ -126,7 +126,7 @@ def txt2html(txt: str) -> str:
 def _get_tag_attrs(tag: str, tag_html: str) -> dict:
     tag_html = re.findall("<%s[^>]*?>" % tag, tag_html)[0]
     #        print tag_html
-    attrs_list = re.findall("\s*(\S*)\s*=\s*[\"'](.*?)[\"']\s*", tag_html)  # get attributes
+    attrs_list = re.findall(r"\s*(\S*)\s*=\s*[\"'](.*?)[\"']\s*", tag_html)  # get attributes
     #        print attrs_list
     _attrs = {}
     for key in attrs_list:
