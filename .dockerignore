@@ -1,3 +1,6 @@
-mirai/
-venv/
-.git/
+.venv/
+data/
+log/
+__pycache__/
+.env.*
+archive/
