@@ -32,7 +32,7 @@ from src.plugins.common.depends import Group
 qqnt_version_monitor = QQNTVersionMonitor()
 
 async def get_qqnt_new_version():
-    version, _, detail = await qqnt_version_monitor.get_new_version()
+    version, detail, _ = await qqnt_version_monitor.get_new_version()
     if version:
         save_version(version, detail)
     return version, detail
