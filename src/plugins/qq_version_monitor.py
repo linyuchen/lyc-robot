@@ -14,7 +14,8 @@ from nonebot.plugin import PluginMetadata
 from nonebot_plugin_alconna import UniMsg
 from nonebot_plugin_waiter import waiter
 
-from src.common.qq_version_monitor import qqnt_version_monitor
+from src.common.qq_version_monitor import QQNTVersionMonitor
+
 from src.db.model_utils.qq_version_monitor import get_versions, add_subscriber, remove_subscriber, get_subscribers, \
     save_version, get_version
 
@@ -28,9 +29,10 @@ driver = get_driver()
 
 from src.plugins.common.depends import Group
 
+qqnt_version_monitor = QQNTVersionMonitor()
 
 async def get_qqnt_new_version():
-    version, detail = await qqnt_version_monitor.get_new_version()
+    version, _, detail = await qqnt_version_monitor.get_new_version()
     if version:
         save_version(version, detail)
     return version, detail

@@ -1,0 +1,3 @@
+[submodule "src/common/qq_version_monitor"]
+	path = src/common/qq_version_monitor
+	url = git@github.com:linyuchen/QQVersionMonitor.git
