@@ -81,6 +81,9 @@ async def _():
         return msg.extract_plain_text()
 
     async for resp in check(timeout=TIMEOUT):
+        if resp is None:
+            # 超时，结束命令
+            await qqnt_versions_cmd.finish()
         if not resp or not resp.isdigit():
             continue
         index = int(resp)
@@ -88,8 +91,7 @@ async def _():
             continue
         version = versions[index]
         await qqnt_versions_cmd.send(version.detail)
-
-    qqnt_versions_cmd.finish()
+        break
 
 
 @subscribe_qqnt_new_version_cmd.handle()
