@@ -6,8 +6,9 @@ from nonebot.adapters import Event
 from nonebot.plugin import PluginMetadata
 from nonebot.params import CommandArg
 from nonebot.permission import SUPERUSER
-from nonebot_plugin_alconna import UniMsg
+from nonebot_plugin_alconna import UniMsg, SupportAdapter
 from nonebot_plugin_uninfo import Uninfo
+from nonebot.adapters.onebot.v11.message import MessageSegment
 
 from src.common.bilibili.login import BiliLogin
 from src.common.bilibili.session import set_bili_cookie
@@ -35,8 +36,6 @@ def check_in_cache(bv_id):
 
 @on_message().handle()
 async def _(session: Uninfo, event: Event, bot: Bot):
-    # 如何跨平台的获取用户的id呢
-    print(event)
     is_group = session.scene.is_group
     msg_text = event.get_plaintext()
     if not msg_text:
@@ -68,24 +67,44 @@ async def _(session: Uninfo, event: Event, bot: Bot):
         if check_in_cache(bvid + str(session.group.id) if is_group else str(session.user.id)):
             return
         img = await bilicard.gen_image(video_info)
-        summary = await bilicard.get_video_summary_by_ai(video_info["aid"], video_info["cid"])
+        ai_summary = await bilicard.get_video_summary_by_ai(video_info["aid"], video_info["cid"])
         # 没有简介内容或者简介等于标题的，且是卡片分享的，而且AI无法总结的就不需要发送了
         if ((len(video_info["desc"]) < 4 or video_info["desc"] == video_info["title"])
-                and not summary):
+                and not ai_summary):
             return
-        if summary:
-            summary = "AI总结：" + summary
+        if ai_summary:
+            summary = "AI总结：" + ai_summary
         elif await check_login():
             summary = "AI总结：此视频不支持"
         else:
             summary = "AI总结：未登录B站，无法总结"
 
         url = f"https://bilibili.com/video/{bvid}" if bvid else f"https://bilibili.com/video/av{avid}"
+        video_desc = "视频简介：" + video_info["desc"] + "\n\n" + summary + "\n\n" + url
         if img:
-            reply_msg = UniMsg.image(raw=img) + \
-                        UniMsg.text("简介：" + video_info["desc"] + "\n\n" + summary +
-                                            "\n\n" + url)
-            await bot.send(event, await reply_msg.export())
+            if session.adapter == SupportAdapter.onebot11 and (ai_summary or len(video_desc) > 30):
+                send_msg = MessageSegment.image(img)
+                await bot.send(event, send_msg)
+                await bot.call_api('send_group_forward_msg', **{
+                    'group_id': session.group.id,
+                    'messages': [
+                        {
+                            'type': 'node',
+                            'data': {
+                                'content': {
+                                    'type': 'text',
+                                    'data': {
+                                        'text': video_desc
+                                    }
+                                }
+                            }
+                        }
+                    ]
+                })
+            else:
+                reply_msg = UniMsg.image(raw=img) + \
+                            UniMsg.text(video_desc)
+                await bot.send(event, await reply_msg.export())
 
 
 set_cookie_cmd = on_command('设置B站cookie', permission=SUPERUSER)
