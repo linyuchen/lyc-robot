@@ -71,7 +71,7 @@ class YuanBaoApi:
             "agentId": self.agent_id,
             "supportHint": 1,
             "version": "v2",
-            "chatModelId": "deep_seek_v3", # deep_seek_v3, deep_seek. deep_seek 为深度思考
+            "chatModelId": "deep_seek",
             "chatModelExtInfo": "{\"modelId\":\"deep_seek_v3\",\"subModelId\":\"\",\"supportFunctions\":{\"supportInternetSearch\":true,\"internetSearch\":\"supportInternetSearch\"}}",
             "supportFunctions": [
                 "supportInternetSearch",
