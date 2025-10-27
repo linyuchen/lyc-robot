@@ -80,10 +80,10 @@ async def _(session: Uninfo, event: Event, bot: Bot):
             summary = "AI总结：未登录B站，无法总结"
 
         url = f"https://bilibili.com/video/{bvid}" if bvid else f"https://bilibili.com/video/av{avid}"
-        video_desc = "视频简介：" + video_info["desc"] + "\n\n" + summary + "\n\n" + url
+        video_desc = "视频简介：" + video_info["desc"] + "\n\n" + summary
         if img:
             if session.adapter == SupportAdapter.onebot11 and (ai_summary or len(video_desc) > 30):
-                send_msg = MessageSegment.image(img)
+                send_msg = MessageSegment.image(img) + MessageSegment.text(url)
                 await bot.send(event, send_msg)
                 await bot.call_api('send_group_forward_msg', **{
                     'group_id': session.group.id,
@@ -102,7 +102,7 @@ async def _(session: Uninfo, event: Event, bot: Bot):
                     ]
                 })
             else:
-                reply_msg = UniMsg.image(raw=img) + \
+                reply_msg = UniMsg.image(raw=img) + UniMsg.text(url) + \
                             UniMsg.text(video_desc)
                 await bot.send(event, await reply_msg.export())
 
