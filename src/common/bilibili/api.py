@@ -1,12 +1,14 @@
 import time
 
 from src.common.bilibili.session import session
+from src.common.bilibili.wbi import WBITool
 
 
 async def get_my_info():
     url = 'https://api.bilibili.com/x/space/v2/myinfo'
     resp = await session.get(url)
     return resp.json()
+
 
 async def check_login() -> bool:
     my_info = await get_my_info()
@@ -69,3 +71,20 @@ async def get_subtitle(aid: str, cid: str):
             subtitle_content.append(i["content"])
     subtitle = "\n".join(subtitle_content)
     return subtitle
+
+
+async def get_ai_summary(cid: str, av_id: str = "", bv_id=""):
+    url = "https://api.bilibili.com/x/web-interface/view/conclusion/get"
+    params = {
+        "cid": cid,
+    }
+    if av_id:
+        params["aid"] = av_id
+    if bv_id:
+        params["bvid"] = bv_id
+    params = await WBITool().add_wbi(params)
+    res = (await session.get(url, params=params)).json()
+    if res["code"] != 0:
+        return 'AI 总结失败，' + res['message']
+
+    return res["data"].get('model_result', {}).get("summary")
