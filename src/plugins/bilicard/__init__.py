@@ -80,6 +80,7 @@ async def _(session: Uninfo, event: Event, bot: Bot):
             summary = "AI总结：未登录B站，无法总结"
 
         url = f"https://bilibili.com/video/{bvid}" if bvid else f"https://bilibili.com/video/av{avid}"
+        url = '\n' + url
         video_desc = "视频简介：" + video_info["desc"] + "\n\n" + summary
         if img:
             if session.adapter == SupportAdapter.onebot11 and (ai_summary or len(video_desc) > 30):
@@ -103,7 +104,7 @@ async def _(session: Uninfo, event: Event, bot: Bot):
                 })
             else:
                 reply_msg = UniMsg.image(raw=img) + UniMsg.text(url) + \
-                            UniMsg.text(video_desc)
+                            UniMsg.text('\n' + video_desc)
                 await bot.send(event, await reply_msg.export())
 
 
