@@ -1,7 +1,8 @@
-from nonebot import require, get_driver
+from nonebot import require, get_driver, Bot
 from nonebot.internal.adapter import Message
 from nonebot.params import CommandArg
 from nonebot.plugin.on import on_command
+from nonebot_plugin_uninfo import Uninfo, SupportAdapter
 
 from src.plugins.common.message import uni_send_group_msg
 
@@ -63,7 +64,7 @@ qqnt_search_cmd = on_command('qq版本', aliases={'QQ版本'})
 
 
 @qqnt_versions_cmd.handle()
-async def _():
+async def _(bot: Bot, session: Uninfo):
     versions = get_versions()
     if not versions:
         await qqnt_versions_cmd.finish("暂无QQ版本信息")
@@ -90,7 +91,25 @@ async def _():
         if index < 0 or index >= len(versions):
             continue
         version = versions[index]
-        await qqnt_versions_cmd.send(version.detail)
+        if session.adapter == SupportAdapter.onebot11:
+            await bot.call_api('send_group_forward_msg', **{
+                'group_id': session.group.id,
+                'messages': [
+                    {
+                        'type': 'node',
+                        'data': {
+                            'content': {
+                                'type': 'text',
+                                'data': {
+                                    'text': version.detail
+                                }
+                            }
+                        }
+                    }
+                ]
+            })
+        else:
+            await qqnt_versions_cmd.send(version.detail)
         break
 
 
@@ -111,14 +130,32 @@ async def _(group: Group):
 
 
 @qqnt_search_cmd.handle()
-async def _(args: Message = CommandArg()):
+async def _(session: Uninfo, bot: Bot, args: Message = CommandArg()):
     version = args.extract_plain_text()
     version = version.strip()
     if not version.isdigit():
         return
     version_info = get_version(version)
     if version_info:
-        await qqnt_search_cmd.finish(version_info.detail)
+        if session.adapter == SupportAdapter.onebot11:
+            await bot.call_api('send_group_forward_msg', **{
+                'group_id': session.group.id,
+                'messages': [
+                    {
+                        'type': 'node',
+                        'data': {
+                            'content': {
+                                'type': 'text',
+                                'data': {
+                                    'text': version_info.detail
+                                }
+                            }
+                        }
+                    }
+                ]
+            })
+        else:
+            await qqnt_search_cmd.finish(version_info.detail)
     else:
         await qqnt_search_cmd.finish(f'数据库没有找到QQ{version}')
 
