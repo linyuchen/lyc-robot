@@ -22,8 +22,17 @@ async def _(bot: Bot, event: GroupMessageEvent, params: Message = CommandArg()):
     if not event.reply:
         return
         return await group_album_cmd.finish('请对图片引用发送此命令')
+    album_name = params.extract_plain_text().strip()
+    album_id = ''
+    group_album_list = await bot.call_api('get_group_album_list', group_id=event.group_id)
+    for album in group_album_list:
+        if album['name'] == album_name:
+            album_id = album['album_id']
+            break
+    if not album_id:
+        create_result = await bot.call_api('create_group_album', group_id=event.group_id, album_name=album_name)
+        album_id = create_result['album_id']
     for reply_msg in event.reply.message:
         if reply_msg.type == 'image':
             img_url = reply_msg.data.get('url')
-            album_name = params.extract_plain_text().strip()
-            await bot.call_api('upload_group_album', group_id=event.group_id, album_name=album_name, file=img_url)
+            await bot.call_api('upload_group_album', group_id=event.group_id, album_id=album_id, file=img_url)
