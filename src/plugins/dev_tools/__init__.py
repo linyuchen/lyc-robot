@@ -1,0 +1,1 @@
+from .qq_msg_segment import get_msg
