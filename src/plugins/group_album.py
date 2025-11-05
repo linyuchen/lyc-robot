@@ -30,7 +30,7 @@ async def _(bot: Bot, event: GroupMessageEvent, params: Message = CommandArg()):
             album_id = album['album_id']
             break
     if not album_id:
-        create_result = await bot.call_api('create_group_album', group_id=event.group_id, album_name=album_name)
+        create_result = await bot.call_api('create_group_album', group_id=event.group_id, name=album_name)
         album_id = create_result['album_id']
     for reply_msg in event.reply.message:
         if reply_msg.type == 'image':
