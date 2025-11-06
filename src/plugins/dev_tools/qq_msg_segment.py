@@ -19,6 +19,7 @@ async def get_msg(bot: Bot, event: MessageEvent):
         return
     onebot11_msg = event.reply.model_dump()
     onebot11_msg.pop('raw')
+    onebot11_msg.pop('raw_pb')
     forward_data = {
         'messages': [
             {
@@ -46,7 +47,20 @@ async def get_msg(bot: Bot, event: MessageEvent):
                         }
                     }
                 }
-            }
+            },
+            {
+                'type': 'node',
+                'data': {
+                    'uin': 10000,
+                    'name': 'Protobuf',
+                    'content': {
+                        'type': 'text',
+                        'data': {
+                            'text': event.reply.raw_pb
+                        }
+                    }
+                }
+            },
         ]
     }
     if isinstance(event, GroupMessageEvent):
