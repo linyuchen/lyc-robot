@@ -32,7 +32,10 @@ async def _(bot: Bot, event: GroupMessageEvent, params: Message = CommandArg()):
     if not album_id:
         create_result = await bot.call_api('create_group_album', group_id=event.group_id, name=album_name)
         album_id = create_result['album_id']
+    img_urls = []
     for reply_msg in event.reply.message:
         if reply_msg.type == 'image':
             img_url = reply_msg.data.get('url')
-            await bot.call_api('upload_group_album', group_id=event.group_id, album_id=album_id, file=img_url)
+            img_urls.append(img_url)
+    if img_urls:
+        await bot.call_api('upload_group_album', group_id=event.group_id, album_id=album_id, files=img_urls)
