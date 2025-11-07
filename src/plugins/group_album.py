@@ -34,7 +34,7 @@ async def _(bot: Bot, event: GroupMessageEvent, params: Message = CommandArg()):
         album_id = create_result['album_id']
     img_urls = []
     for reply_msg in event.reply.message:
-        if reply_msg.type == 'image':
+        if reply_msg.type in ['image', 'mface']:
             img_url = reply_msg.data.get('url')
             img_urls.append(img_url)
     if img_urls:
