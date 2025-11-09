@@ -1,3 +1,5 @@
+import re
+
 from nonebot import require, get_driver, Bot
 from nonebot.internal.adapter import Message
 from nonebot.params import CommandArg
@@ -10,7 +12,7 @@ require("nonebot_plugin_apscheduler")
 
 from nonebot_plugin_apscheduler import scheduler
 
-from nonebot import on_fullmatch
+from nonebot import on_fullmatch, on_regex
 from nonebot.plugin import PluginMetadata
 from nonebot_plugin_alconna import UniMsg
 from nonebot_plugin_waiter import waiter
@@ -57,15 +59,19 @@ async def _():
     await get_qqnt_new_version()
 
 
-qqnt_versions_cmd = on_fullmatch(('QQ版本列表', 'qq版本列表', 'QQ历史版本', 'qq历史版本'))
+qqnt_versions_cmd = on_regex('^(?:全部)?qq历史版本$', re.IGNORECASE)
 subscribe_qqnt_new_version_cmd = on_fullmatch(('订阅QQ更新', '订阅qq更新'))
 unsubscribe_qqnt_new_version_cmd = on_fullmatch(('取消订阅QQ更新', '取消订阅qq更新'))
 qqnt_search_cmd = on_command('qq版本', aliases={'QQ版本'})
 
 
 @qqnt_versions_cmd.handle()
-async def _(bot: Bot, session: Uninfo):
-    versions = get_versions()
+async def _(bot: Bot, session: Uninfo, message: UniMsg):
+    count = 10
+    if '全部' in message.extract_plain_text():
+        await get_qqnt_new_version()
+        count = 99
+    versions = get_versions(count)
     if not versions:
         await qqnt_versions_cmd.finish("暂无QQ版本信息")
 
