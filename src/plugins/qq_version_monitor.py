@@ -83,7 +83,7 @@ async def _(bot: Bot, session: Uninfo, message: UniMsg):
     text += f'\n\n{TIMEOUT}秒内回复序号获取版本详情'
     await qqnt_versions_cmd.send(text)
 
-    @waiter(waits=["message"], keep_session=True)
+    @waiter(waits=["message"], keep_session=False)
     async def check(msg: UniMsg):
         return msg.extract_plain_text()
 
