@@ -67,10 +67,10 @@ qqnt_search_cmd = on_command('qq版本', aliases={'QQ版本'})
 
 @qqnt_versions_cmd.handle()
 async def _(bot: Bot, session: Uninfo, message: UniMsg):
-    count = 10
+    count = 20
     if '全部' in message.extract_plain_text():
         await get_qqnt_new_version()
-        count = 99
+        count = 100
     versions = get_versions(count)
     if not versions:
         await qqnt_versions_cmd.finish("暂无QQ版本信息")
