@@ -81,15 +81,16 @@ async def _(bot: Bot, session: Uninfo, message: UniMsg):
 
     TIMEOUT = 20
     text += f'\n\n{TIMEOUT}秒内回复序号获取版本详情'
-    await qqnt_versions_cmd.send(text)
-
+    list_msg_rsp = await qqnt_versions_cmd.send(text)
+    list_msg_id = list_msg_rsp['message_id']
+    delete_list_msg = lambda : bot.call_api('delete_msg', message_id=list_msg_id)
     @waiter(waits=["message"], keep_session=False)
     async def check(msg: UniMsg):
         return msg.extract_plain_text()
-
     async for resp in check(timeout=TIMEOUT):
         if resp is None:
             # 超时，结束命令
+            await delete_list_msg()
             await qqnt_versions_cmd.finish()
         if not resp or not resp.isdigit():
             continue
@@ -98,6 +99,7 @@ async def _(bot: Bot, session: Uninfo, message: UniMsg):
             continue
         version = versions[index]
         if session.adapter == SupportAdapter.onebot11:
+            await delete_list_msg()
             await bot.call_api('send_group_forward_msg', **{
                 'group_id': session.group.id,
                 'messages': [
