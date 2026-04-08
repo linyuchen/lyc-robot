@@ -120,7 +120,7 @@ def render_status_card(stats: dict) -> bytes:
 
     inner_w = W - 2 * PAD - 2 * INNER
     badge_gap = 12
-    badge_w = (inner_w - 3 * badge_gap) // 4  # 4 badges
+    badge_w = (inner_w - 4 * badge_gap) // 5  # 5 badges
 
     # Top models
     top_models: list[tuple[str, dict]] = stats.get("top_models", [])
@@ -166,6 +166,7 @@ def render_status_card(stats: dict) -> bytes:
         ("总数", _fmt(stats.get("total_accounts")), BLUE, BLUE_BG),
         ("可用", _fmt(stats.get("active_accounts")), GREEN, GREEN_BG),
         ("异常", _fmt(stats.get("error_accounts")), RED, RED_BG),
+        ("暂时", _fmt(stats.get("transient_accounts")), ORANGE, ORANGE_BG),
         ("禁用", _fmt(stats.get("disabled_accounts")), GRAY, GRAY_BG),
     ]:
         _badge(draw, bx, ny, badge_w, 62, lbl, val, fg, bg, fbl, fbv)

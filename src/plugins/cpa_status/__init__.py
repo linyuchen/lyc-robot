@@ -1,4 +1,5 @@
 import asyncio
+import logging
 from datetime import datetime, timezone, timedelta
 
 import httpx
@@ -25,39 +26,70 @@ class CpaConfig(BaseModel):
 
 
 config = get_plugin_config(CpaConfig)
+logger = logging.getLogger("cpa_status")
 
 
 def _auth_headers() -> dict:
     return {"Authorization": f"Bearer {config.cpa_management_key}"}
 
 
+MAX_RETRIES = 3
+
+
+async def _fetch_with_retry(client: httpx.AsyncClient, url: str) -> dict:
+    last_err = None
+    for i in range(MAX_RETRIES):
+        try:
+            resp = await client.get(url, headers=_auth_headers(), timeout=15)
+            resp.raise_for_status()
+            return resp.json()
+        except Exception as e:
+            last_err = e
+            if i < MAX_RETRIES - 1:
+                await asyncio.sleep(1)
+    raise last_err
+
+
 async def _fetch_usage(client: httpx.AsyncClient) -> dict:
-    resp = await client.get(
-        f"{config.cpa_base_url}/v0/management/usage",
-        headers=_auth_headers(),
-        timeout=15,
-    )
-    resp.raise_for_status()
-    return resp.json()
+    return await _fetch_with_retry(client, f"{config.cpa_base_url}/v0/management/usage")
 
 
 async def _fetch_auth_files(client: httpx.AsyncClient) -> list:
-    resp = await client.get(
-        f"{config.cpa_base_url}/v0/management/auth-files",
-        headers=_auth_headers(),
-        timeout=15,
-    )
-    resp.raise_for_status()
-    return resp.json().get("files", [])
+    data = await _fetch_with_retry(client, f"{config.cpa_base_url}/v0/management/auth-files")
+    return data.get("files", [])
 
 
 def _build_stats(usage_data: dict, auth_files: list) -> dict:
     usage = usage_data.get("usage", {})
 
+    # Log detailed auth file info
+    logger.info("=== CPA Auth Files (%d) ===", len(auth_files))
+    for f in auth_files:
+        logger.info(
+            "  [%s] name=%s provider=%s status=%s status_message=%s "
+            "disabled=%s unavailable=%s",
+            f.get("id", "?"),
+            f.get("name", "?"),
+            f.get("provider", "?"),
+            f.get("status", "?"),
+            f.get("status_message", ""),
+            f.get("disabled", False),
+            f.get("unavailable", False),
+        )
+
     # Account stats from auth-files
+    # transient upstream errors (500/502/503/504) are auto-recoverable, not real errors
+    TRANSIENT_MESSAGES = {"transient upstream error", "request failed", "upstream stream closed before first payload"}
     total = len(auth_files)
     active = sum(1 for f in auth_files if f.get("status") == "active" and not f.get("disabled"))
-    error = sum(1 for f in auth_files if f.get("status") == "error")
+    error = sum(
+        1 for f in auth_files
+        if f.get("status") == "error" and f.get("status_message", "") not in TRANSIENT_MESSAGES
+    )
+    transient = sum(
+        1 for f in auth_files
+        if f.get("status") == "error" and f.get("status_message", "") in TRANSIENT_MESSAGES
+    )
     disabled = sum(1 for f in auth_files if f.get("disabled") or f.get("status") == "disabled")
 
     # Today's date key in CST
@@ -91,6 +123,7 @@ def _build_stats(usage_data: dict, auth_files: list) -> dict:
         "total_accounts": total,
         "active_accounts": active,
         "error_accounts": error,
+        "transient_accounts": transient,
         "disabled_accounts": disabled,
         "total_requests": usage.get("total_requests", 0),
         "success_count": usage.get("success_count", 0),
