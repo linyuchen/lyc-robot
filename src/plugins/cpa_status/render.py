@@ -31,6 +31,8 @@ RED = (220, 38, 38)
 RED_BG = (254, 226, 226)
 ORANGE = (217, 119, 6)
 ORANGE_BG = (254, 243, 199)
+PURPLE = (147, 51, 234)
+PURPLE_BG = (243, 232, 255)
 GRAY = (100, 116, 139)
 GRAY_BG = (241, 245, 249)
 BLUE = (37, 99, 235)
@@ -120,11 +122,16 @@ def render_status_card(stats: dict) -> bytes:
 
     inner_w = W - 2 * PAD - 2 * INNER
     badge_gap = 12
-    badge_w = (inner_w - 4 * badge_gap) // 5  # 5 badges
+    badge_w = (inner_w - 3 * badge_gap) // 4  # 4 summary badges
 
     # Top models
     top_models: list[tuple[str, dict]] = stats.get("top_models", [])
     model_rows = min(len(top_models), 8)
+
+    # Status breakdown (dynamic error categories)
+    status_breakdown: dict[str, int] = stats.get("status_breakdown", {})
+    breakdown_rows = (len(status_breakdown) + 1) // 2  # 2 cols
+    breakdown_h = (breakdown_rows * ROW_H + 40 + INNER) if status_breakdown else 0
 
     # Section heights
     hdr = 78
@@ -139,6 +146,7 @@ def render_status_card(stats: dict) -> bytes:
     total = (
         PAD + hdr
         + SEC_GAP + acc_h
+        + (SEC_GAP + breakdown_h if breakdown_h else 0)
         + SEC_GAP + req_h
         + SEC_GAP + tok_h
         + (SEC_GAP + model_h if model_h else 0)
@@ -166,12 +174,20 @@ def render_status_card(stats: dict) -> bytes:
         ("总数", _fmt(stats.get("total_accounts")), BLUE, BLUE_BG),
         ("可用", _fmt(stats.get("active_accounts")), GREEN, GREEN_BG),
         ("异常", _fmt(stats.get("error_accounts")), RED, RED_BG),
-        ("暂时", _fmt(stats.get("transient_accounts")), ORANGE, ORANGE_BG),
         ("禁用", _fmt(stats.get("disabled_accounts")), GRAY, GRAY_BG),
     ]:
         _badge(draw, bx, ny, badge_w, 62, lbl, val, fg, bg, fbl, fbv)
         bx += badge_w + badge_gap
     y += acc_h
+
+    # ── Status Breakdown (dynamic) ──
+    if breakdown_h:
+        y += SEC_GAP
+        cx, cy = _card(draw, y, breakdown_h)
+        ny = _title(draw, cx, cy, "异常详情", fh)
+        items = sorted(status_breakdown.items(), key=lambda x: -x[1])
+        _kvgrid(draw, cx, ny, [(msg, str(cnt)) for msg, cnt in items], fl, fv)
+        y += breakdown_h
 
     # ── Requests ──
     y += SEC_GAP

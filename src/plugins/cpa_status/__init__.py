@@ -77,20 +77,36 @@ def _build_stats(usage_data: dict, auth_files: list) -> dict:
             f.get("unavailable", False),
         )
 
-    # Account stats from auth-files
-    # transient upstream errors (500/502/503/504) are auto-recoverable, not real errors
-    TRANSIENT_MESSAGES = {"transient upstream error", "request failed", "upstream stream closed before first payload"}
+    # Account stats from auth-files — keyword-based grouping
+    KEYWORD_CATEGORIES = [
+        ("usage_limit_reached", "额度上限"),
+        ("quota exhausted", "额度上限"),
+        ("unauthorized", "账号失效"),
+        ("payment_required", "账号失效"),
+        ("upstream stream closed", "上游错误"),
+        ("transient upstream error", "上游错误"),
+        ("request failed", "上游错误"),
+    ]
+
+    def _classify_message(msg: str) -> str:
+        msg_lower = msg.lower()
+        for keyword, category in KEYWORD_CATEGORIES:
+            if keyword.lower() in msg_lower:
+                return category
+        return msg or "未知错误"
+
     total = len(auth_files)
-    active = sum(1 for f in auth_files if f.get("status") == "active" and not f.get("disabled"))
-    error = sum(
-        1 for f in auth_files
-        if f.get("status") == "error" and f.get("status_message", "") not in TRANSIENT_MESSAGES
-    )
-    transient = sum(
-        1 for f in auth_files
-        if f.get("status") == "error" and f.get("status_message", "") in TRANSIENT_MESSAGES
-    )
-    disabled = sum(1 for f in auth_files if f.get("disabled") or f.get("status") == "disabled")
+    active = 0
+    disabled = 0
+    status_breakdown: dict[str, int] = {}
+    for f in auth_files:
+        if f.get("disabled") or f.get("status") == "disabled":
+            disabled += 1
+        elif f.get("status") == "active":
+            active += 1
+        elif f.get("status") == "error":
+            cat = _classify_message(f.get("status_message", ""))
+            status_breakdown[cat] = status_breakdown.get(cat, 0) + 1
 
     # Today's date key in CST
     today_key = datetime.now(CST).strftime("%Y-%m-%d")
@@ -122,9 +138,9 @@ def _build_stats(usage_data: dict, auth_files: list) -> dict:
     return {
         "total_accounts": total,
         "active_accounts": active,
-        "error_accounts": error,
-        "transient_accounts": transient,
+        "error_accounts": sum(status_breakdown.values()),
         "disabled_accounts": disabled,
+        "status_breakdown": status_breakdown,
         "total_requests": usage.get("total_requests", 0),
         "success_count": usage.get("success_count", 0),
         "failure_count": usage.get("failure_count", 0),
