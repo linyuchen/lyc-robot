@@ -1,7 +1,10 @@
+from datetime import datetime, timezone, timedelta
 from io import BytesIO
 from pathlib import Path
 
 from PIL import Image, ImageDraw, ImageFont
+
+CST = timezone(timedelta(hours=8))
 
 FONT_PATH = Path(__file__).parent.parent.parent / "common/fonts/msyh.ttc"
 
@@ -179,7 +182,12 @@ def render_status_card(stats: dict) -> bytes:
     my = y + 40
     ua = stats.get("stats_updated_at", "")
     if ua:
-        draw.text((PAD, my), f"更新于  {str(ua)[:19].replace('T', ' ')}", font=fs, fill=LIGHT)
+        try:
+            dt = datetime.fromisoformat(str(ua).replace("Z", "+00:00"))
+            ts = dt.astimezone(CST).strftime("%Y-%m-%d %H:%M:%S")
+        except Exception:
+            ts = str(ua)[:19].replace("T", " ")
+        draw.text((PAD, my), f"更新于  {ts}", font=fs, fill=LIGHT)
     ut = f"已运行  {_uptime(stats.get('uptime'))}"
     draw.text((W - PAD - _tw(fs, ut), my), ut, font=fs, fill=LIGHT)
     y += hdr
