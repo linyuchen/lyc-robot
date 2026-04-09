@@ -81,11 +81,10 @@ def _build_stats(usage_data: dict, auth_files: list) -> dict:
     KEYWORD_CATEGORIES = [
         ("usage_limit_reached", "额度上限"),
         ("quota exhausted", "额度上限"),
-        ("unauthorized", "账号失效"),
-        ("payment_required", "账号失效"),
         ("upstream stream closed", "上游错误"),
         ("transient upstream error", "上游错误"),
         ("request failed", "上游错误"),
+        ("token_invalidated", "账号无效")
     ]
 
     def _classify_message(msg: str) -> str:
@@ -93,7 +92,7 @@ def _build_stats(usage_data: dict, auth_files: list) -> dict:
         for keyword, category in KEYWORD_CATEGORIES:
             if keyword.lower() in msg_lower:
                 return category
-        return msg or "未知错误"
+        return "账号无效"
 
     total = len(auth_files)
     active = 0
