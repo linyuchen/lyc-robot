@@ -1,3 +1,4 @@
+import asyncio
 import time
 
 import httpx
@@ -28,6 +29,8 @@ config = get_plugin_config(Sub2ApiConfig)
 _jwt_token: str | None = None
 _jwt_expires_at: float = 0
 
+MAX_RETRIES = 3
+
 
 async def get_jwt_token() -> str:
     global _jwt_token, _jwt_expires_at
@@ -35,45 +38,57 @@ async def get_jwt_token() -> str:
     if _jwt_token and time.time() < _jwt_expires_at - 60:
         return _jwt_token
 
-    async with httpx.AsyncClient() as client:
-        resp = await client.post(
-            f"{config.sub2api_base_url}/api/v1/auth/login",
-            json={
-                "email": config.sub2api_admin_email,
-                "password": config.sub2api_admin_password,
-            },
-            timeout=10,
-        )
-        resp.raise_for_status()
-        data = resp.json()["data"]
-        _jwt_token = data["access_token"]
-        expires_in = data.get("expires_in", 3600)
-        _jwt_expires_at = time.time() + expires_in
-        return _jwt_token
+    last_err = None
+    for i in range(MAX_RETRIES):
+        try:
+            async with httpx.AsyncClient() as client:
+                resp = await client.post(
+                    f"{config.sub2api_base_url}/api/v1/auth/login",
+                    json={
+                        "email": config.sub2api_admin_email,
+                        "password": config.sub2api_admin_password,
+                    },
+                    timeout=10,
+                )
+                resp.raise_for_status()
+                data = resp.json()["data"]
+                _jwt_token = data["access_token"]
+                expires_in = data.get("expires_in", 3600)
+                _jwt_expires_at = time.time() + expires_in
+                return _jwt_token
+        except Exception as e:
+            last_err = e
+            if i < MAX_RETRIES - 1:
+                await asyncio.sleep(1)
+    raise last_err
 
 
 async def fetch_dashboard_stats() -> dict:
     global _jwt_token, _jwt_expires_at
 
     token = await get_jwt_token()
-    async with httpx.AsyncClient() as client:
-        resp = await client.get(
-            f"{config.sub2api_base_url}/api/v1/admin/dashboard/stats",
-            headers={"Authorization": f"Bearer {token}"},
-            timeout=15,
-        )
-        # Token expired, retry once
-        if resp.status_code == 401:
-            _jwt_token = None
-            _jwt_expires_at = 0
-            token = await get_jwt_token()
-            resp = await client.get(
-                f"{config.sub2api_base_url}/api/v1/admin/dashboard/stats",
-                headers={"Authorization": f"Bearer {token}"},
-                timeout=15,
-            )
-        resp.raise_for_status()
-        return resp.json()["data"]
+    last_err = None
+    for i in range(MAX_RETRIES):
+        try:
+            async with httpx.AsyncClient() as client:
+                resp = await client.get(
+                    f"{config.sub2api_base_url}/api/v1/admin/dashboard/stats",
+                    headers={"Authorization": f"Bearer {token}"},
+                    timeout=15,
+                )
+                # Token expired, refresh and retry
+                if resp.status_code == 401:
+                    _jwt_token = None
+                    _jwt_expires_at = 0
+                    token = await get_jwt_token()
+                    continue
+                resp.raise_for_status()
+                return resp.json()["data"]
+        except Exception as e:
+            last_err = e
+            if i < MAX_RETRIES - 1:
+                await asyncio.sleep(1)
+    raise last_err
 
 
 sub2api_status_cmd = on_fullmatch("sub2api状态", permission=SUPERUSER)
