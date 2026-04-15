@@ -153,6 +153,9 @@ def render_status_card(stats: dict) -> bytes:
     badge_gap = 12
     badge_w = (inner_w - 4 * badge_gap) // 5
 
+    has_7d = bool(stats.get("usage_7d_avg"))
+    quota_h = (ROW_H + 40 + INNER) if has_7d else 0
+
     # heights (INNER added as bottom padding for each card)
     hdr = 78
     acc_h = 120 + INNER
@@ -168,6 +171,7 @@ def render_status_card(stats: dict) -> bytes:
         + SEC_GAP + req_h
         + SEC_GAP + tok_h
         + SEC_GAP + cst_h
+        + (SEC_GAP + quota_h if has_7d else 0)
         + SEC_GAP + usr_h
         + SEC_GAP + sys_h
         + PAD + 4  # shadow
@@ -260,6 +264,19 @@ def render_status_card(stats: dict) -> bytes:
         ("今日实际", _cost(stats.get("today_actual_cost"))),
     ], fl, fv)
     y += cst_h
+
+    # ── 7d Usage ──
+    if has_7d:
+        y += SEC_GAP
+        cx, cy = _card(draw, y, quota_h)
+        ny = _title(draw, cx, cy, "7天用量", fh)
+        avg_used = float(stats.get("usage_7d_avg") or 0)
+        avg_remain = 100 - avg_used
+        _kvgrid(draw, cx, ny, [
+            ("平均已用", f"{avg_used:.1f}%"),
+            ("平均剩余", f"{avg_remain:.1f}%"),
+        ], fl, fv)
+        y += quota_h
 
     # ── Users ──
     y += SEC_GAP
