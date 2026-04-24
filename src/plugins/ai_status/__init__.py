@@ -244,7 +244,7 @@ async def _fetch_codex(client: httpx.AsyncClient) -> dict | None:
 
 # ── Handler ──────────────────────────────────────────
 
-ai_status_cmd = on_fullmatch(("AI状态", "ai状态"))
+ai_status_cmd = on_fullmatch(("AI中转状态", "ai中转状态"))
 
 
 @ai_status_cmd.handle()

@@ -14,7 +14,7 @@ from .render import render_status_card
 __plugin_meta__ = PluginMetadata(
     name="NewAPI状态",
     description="查看NewAPI服务状态和统计信息",
-    usage="newapi状态（仅主人可用）",
+    usage="ai状态",
 )
 
 CST = timezone(timedelta(hours=8))
@@ -107,7 +107,7 @@ def _build_stats(channels_body: dict, log_stat_today: dict, log_stat_total: dict
     }
 
 
-newapi_status_cmd = on_fullmatch("newapi状态", permission=SUPERUSER)
+newapi_status_cmd = on_fullmatch(("ai状态", "AI状态"))
 
 
 @newapi_status_cmd.handle()
