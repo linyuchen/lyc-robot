@@ -116,8 +116,17 @@ def render_status_card(stats: dict) -> bytes:
     # Wrap models into lines (multiple per line, separated by comma)
     model_lines = []
     if models:
+        models_sorted = sorted(models, key=lambda m: m.lower())
+        current_letter = ""
         line = ""
-        for m in models:
+        for m in models_sorted:
+            first = m[0].upper() if m else ""
+            if first != current_letter:
+                if line:
+                    model_lines.append(line)
+                    model_lines.append("")  # blank line between letter groups
+                    line = ""
+                current_letter = first
             test = f"{line}, {m}" if line else m
             if _tw(fm, test) > inner_w and line:
                 model_lines.append(line)
@@ -153,10 +162,10 @@ def render_status_card(stats: dict) -> bytes:
     # ── Stats ──
     y += SEC_GAP
     cx, cy = _card(draw, y, stat_h)
-    ny = _title(draw, cx, cy, "用量统计", fh)
+    ny = _title(draw, cx, cy, "Token用量统计", fh)
     _kvgrid(draw, cx, ny, [
-        ("今日消耗 (Quota)", _fmt(stats.get("today_quota"))),
-        ("累计消耗 (Quota)", _fmt(stats.get("total_quota"))),
+        ("今日消耗", _fmt(stats.get("today_quota"))),
+        ("累计消耗", _fmt(stats.get("total_quota"))),
         ("RPM", _fmt(stats.get("today_rpm"))),
         ("TPM", _fmt(stats.get("today_tpm"))),
     ], fl, fv)
