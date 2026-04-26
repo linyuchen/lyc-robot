@@ -117,16 +117,16 @@ def render_status_card(stats: dict) -> bytes:
     model_lines = []
     if models:
         models_sorted = sorted(models, key=lambda m: m.lower())
-        current_letter = ""
+        current_prefix = ""
         line = ""
         for m in models_sorted:
-            first = m[0].upper() if m else ""
-            if first != current_letter:
+            prefix = m.split("-")[0].lower() if m else ""
+            if prefix != current_prefix:
                 if line:
                     model_lines.append(line)
-                    model_lines.append("")  # blank line between letter groups
+                    model_lines.append("")
                     line = ""
-                current_letter = first
+                current_prefix = prefix
             test = f"{line}, {m}" if line else m
             if _tw(fm, test) > inner_w and line:
                 model_lines.append(line)
