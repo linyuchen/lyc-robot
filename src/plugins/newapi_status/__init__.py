@@ -34,19 +34,27 @@ config = get_plugin_config(NewApiConfig)
 
 async def _create_authed_client() -> httpx.AsyncClient:
     """Login and return an authenticated client with session cookie + user header."""
-    client = httpx.AsyncClient(follow_redirects=True, timeout=15)
-    resp = await client.post(
-        f"{config.newapi_base_url}/api/user/login",
-        json={"username": config.newapi_admin_username, "password": config.newapi_admin_password},
-    )
-    resp.raise_for_status()
-    body = resp.json()
-    if not body.get("success"):
-        await client.aclose()
-        raise Exception(body.get("message", "login failed"))
-    user_id = body["data"]["id"]
-    client.headers["New-API-User"] = str(user_id)
-    return client
+    last_err = None
+    for i in range(MAX_RETRIES):
+        client = httpx.AsyncClient(follow_redirects=True, timeout=15)
+        try:
+            resp = await client.post(
+                f"{config.newapi_base_url}/api/user/login",
+                json={"username": config.newapi_admin_username, "password": config.newapi_admin_password},
+            )
+            resp.raise_for_status()
+            body = resp.json()
+            if not body.get("success"):
+                raise Exception(body.get("message", "login failed"))
+            user_id = body["data"]["id"]
+            client.headers["New-API-User"] = str(user_id)
+            return client
+        except Exception as e:
+            await client.aclose()
+            last_err = e
+            if i < MAX_RETRIES - 1:
+                await asyncio.sleep(2)
+    raise last_err
 
 
 async def _get(client: httpx.AsyncClient, path: str, params: dict = None) -> dict:
