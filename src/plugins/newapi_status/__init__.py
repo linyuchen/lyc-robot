@@ -252,7 +252,7 @@ async def model_monitor_check():
             continue
         if is_available != monitor.last_status:
             update_status(monitor.id, is_available)
-            status_text = "已可用 ✓" if is_available else "已不可用 ✗"
+            status_text = "可用 ✓" if is_available else "不可用 ✗"
             msg = UniMsg.text(f"[模型监控] {monitor.model_name} {status_text}")
             try:
                 if monitor.is_private:
